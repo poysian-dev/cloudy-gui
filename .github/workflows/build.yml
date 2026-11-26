@@ -11,13 +11,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Find project folder
+      - name: Unzip project
         run: |
-          echo "--- files in repo ---"
-          find . -maxdepth 3 -not -path './.git/*' | head -50
+          Z=$(find . -maxdepth 1 -name '*.zip' | head -1)
+          if [ -n "$Z" ]; then
+            unzip -q -o "$Z" -d _src
+          fi
           G=$(find . -name gradlew -not -path './.git/*' | head -1)
           if [ -z "$G" ]; then
-            echo "ERROR: gradlew not found in repo"
+            echo "ERROR: gradlew not found"
+            find . -maxdepth 3 -not -path './.git/*' | head -50
             exit 1
           fi
           echo "PROJECT_DIR=$(dirname "$G")" >> "$GITHUB_ENV"
