@@ -20,21 +20,24 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v5
 
-      - name: Accept Android SDK licenses
-        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
-
       - name: Unzip project
-        run: unzip -q CloudyGUI-project.zip
+        run: |
+          if [ -f CloudyGUI-termux.zip ]; then
+            unzip -q CloudyGUI-termux.zip
+            echo "DIR=CloudyGUI-termux" >> "$GITHUB_ENV"
+          else
+            unzip -q CloudyGUI-project.zip
+            echo "DIR=CloudyGUI" >> "$GITHUB_ENV"
+          fi
 
       - name: Build debug APK
-        working-directory: CloudyGUI
+        working-directory: ${{ env.DIR }}
         run: |
           chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon
+          ./gradlew assembleDebug --no-daemon --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v7
         with:
           name: CloudyGUI-debug-apk
-          path: CloudyGUI/app/build/outputs/apk/debug/*.apk
-          
+          path: ${{ env.DIR }}/app/build/outputs/apk/debug/*.apk
